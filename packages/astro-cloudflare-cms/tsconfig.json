@@ -6,7 +6,9 @@
     "strict": true,
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": { "@/*": ["./src/*"] },
+    "types": ["@types/node", "@cloudflare/workers-types", "@cloudflare/vitest-pool-workers"]
   },
   "include": ["src", "test"]
 }

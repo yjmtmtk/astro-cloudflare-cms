@@ -7,8 +7,12 @@
     "examples/*"
   ],
   "scripts": {
+    "postinstall": "patch-package",
     "test": "npm run test -w astro-cloudflare-cms",
     "build:demo": "npm run build -w examples/demo"
+  },
+  "devDependencies": {
+    "patch-package": "^8.0.1"
   },
   "allowScripts": {
     "esbuild@0.27.7": true,
@@ -17,6 +21,8 @@
     "esbuild@0.27.0": true,
     "fsevents@2.3.3": true,
     "sharp@0.34.5": true,
-    "workerd@1.20260114.0": true
+    "workerd@1.20260114.0": true,
+    "esbuild@0.17.19": true,
+    "workerd@1.20250204.0": true
   }
 }

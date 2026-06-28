@@ -35,8 +35,16 @@ npm run build:css -w astro-cloudflare-cms
 npm run build -w examples/demo
 ```
 
+## Contributing / resuming development
+
+Start with **[`CLAUDE.md`](./CLAUDE.md)** — the development handoff: project status,
+the local `wrangler dev` workflow, and the non-negotiable design rules (relative
+imports only, `virtual:acc-config` for paths, `client:only` admin shell, CLI hash
+parity, bundled CSS). It is auto-loaded by Claude Code.
+
 ## Links
 
+- [CLAUDE.md](./CLAUDE.md) — **development handoff & design rules (read first)**
 - [Package README](./packages/astro-cloudflare-cms/README.md) — quickstart, options, CLI flags
 - [Design spec](./docs/superpowers/specs/) — architecture and data model
 - [Build plans](./docs/superpowers/plans/) — stage-by-stage implementation plans

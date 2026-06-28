@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/integration.ts"
+    ".": "./src/integration.ts",
+    "./types": "./src/lib/types.ts"
   },
   "files": ["src", "migrations", "styles.css", "bin"],
   "scripts": {

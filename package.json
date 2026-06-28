@@ -2,9 +2,21 @@
   "name": "astro-cloudflare-cms-monorepo",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*", "examples/*"],
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
   "scripts": {
     "test": "npm run test -w astro-cloudflare-cms",
     "build:demo": "npm run build -w examples/demo"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true,
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.27.0": true,
+    "fsevents@2.3.3": true,
+    "sharp@0.34.5": true,
+    "workerd@1.20260114.0": true
   }
 }

@@ -89,10 +89,12 @@ export async function init(flags) {
   // ── Step 1: Resolve options ────────────────────────────────────────────────
   log('[1/8] Resolving options…');
   const cwd = process.cwd();
-  const base = basename(cwd);
+  // R2 bucket names allow only lowercase alphanumerics + hyphens; D1 names tolerate the same.
+  // Derive defaults from a sanitized project name so both resources are valid for every wrangler command.
+  const base = basename(cwd).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'acc';
 
-  const dbName     = /** @type {string} */ (flags['db-name']      ?? `${base}_db`);
-  const bucketName = /** @type {string} */ (flags['bucket-name']  ?? `${base}_media`);
+  const dbName     = /** @type {string} */ (flags['db-name']      ?? `${base}-db`);
+  const bucketName = /** @type {string} */ (flags['bucket-name']  ?? `${base}-media`);
   const local      = !!flags.local;
   const yes        = !!flags.yes;
 

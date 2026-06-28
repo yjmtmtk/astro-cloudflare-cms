@@ -39,6 +39,14 @@ export default function cms(options: CmsOptions = {}): AstroIntegration {
         injectRoute({ pattern: `${admin}/api/users`,      entrypoint: here('./routes/admin/api/users/index.ts') });
         injectRoute({ pattern: `${admin}/api/users/[id]`, entrypoint: here('./routes/admin/api/users/[id].ts') });
         injectRoute({ pattern: `/cms-media/[...key]`, entrypoint: here('./routes/cms-media/[...key].ts') });
+        injectRoute({ pattern: o.adminBasePath,                        entrypoint: here('./routes/admin/index.astro') });
+        injectRoute({ pattern: `${o.adminBasePath}/login`,             entrypoint: here('./routes/admin/login.astro') });
+        injectRoute({ pattern: `${o.adminBasePath}/categories`,        entrypoint: here('./routes/admin/categories.astro') });
+        injectRoute({ pattern: `${o.adminBasePath}/users`,             entrypoint: here('./routes/admin/users.astro') });
+        injectRoute({ pattern: `${o.adminBasePath}/articles/new`,      entrypoint: here('./routes/admin/articles/new.astro') });
+        injectRoute({ pattern: `${o.adminBasePath}/articles/[id]`,     entrypoint: here('./routes/admin/articles/[id].astro') });
+        injectRoute({ pattern: o.newsBasePath,                         entrypoint: here('./routes/news/index.astro') });
+        injectRoute({ pattern: `${o.newsBasePath}/[slug]`,             entrypoint: here('./routes/news/[slug].astro') });
         logger.info(`astro-cloudflare-cms: middleware + virtual config ready (admin=${o.adminBasePath})`);
       },
       'astro:config:done': ({ injectTypes }) => {

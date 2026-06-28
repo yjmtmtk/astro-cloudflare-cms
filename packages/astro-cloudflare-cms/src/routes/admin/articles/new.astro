@@ -1,0 +1,15 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { isMaster } from '../../../lib/authz';
+import ArticleForm from '../../../components/ArticleForm.tsx';
+const user = Astro.locals.user!;
+---
+<AdminLayout
+  title="新規記事"
+  currentPath={Astro.url.pathname}
+  isMaster={isMaster(user)}
+  userName={user.name}
+  userRole={user.role}
+>
+  <ArticleForm client:load mode="new" />
+</AdminLayout>

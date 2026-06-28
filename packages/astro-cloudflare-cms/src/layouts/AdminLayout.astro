@@ -25,7 +25,7 @@ const defaultOpen = Astro.cookies.get('sidebar_state')?.value !== 'false';
   </head>
   <body class="min-h-screen bg-background">
     <AdminShell
-      client:load
+      client:only="react"
       title={title}
       currentPath={currentPath}
       isMaster={isMaster}

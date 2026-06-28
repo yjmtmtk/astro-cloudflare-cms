@@ -8,7 +8,7 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "paths": { "@/*": ["./src/*"] },
-    "types": ["@types/node", "@cloudflare/workers-types", "@cloudflare/vitest-pool-workers"]
+    "types": ["@types/node", "@cloudflare/workers-types", "@cloudflare/vitest-pool-workers", "astro/client"]
   },
   "include": ["src", "test"]
 }

@@ -54,9 +54,9 @@ export default function AppSidebar({ currentPath, isMaster, userName, userRole }
             <SidebarMenuButton size="lg" asChild>
               <a href={`${config.adminBasePath}`}>
                 <span className="flex aspect-square size-7 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-                  n
+                  {(config.brand[0] ?? 'a').toUpperCase()}
                 </span>
-                <span className="font-semibold">nanocms</span>
+                <span className="font-semibold">{config.brand}</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

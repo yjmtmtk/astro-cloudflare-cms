@@ -1,0 +1,21 @@
+{
+  "name": "astro-cloudflare-cms",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/integration.ts"
+  },
+  "files": ["src", "migrations", "styles.css", "bin"],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "astro": "^5"
+  },
+  "devDependencies": {
+    "astro": "^5.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "~2.1.0"
+  }
+}

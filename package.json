@@ -1,0 +1,10 @@
+{
+  "name": "astro-cloudflare-cms-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "examples/*"],
+  "scripts": {
+    "test": "npm run test -w astro-cloudflare-cms",
+    "build:demo": "npm run build -w examples/demo"
+  }
+}

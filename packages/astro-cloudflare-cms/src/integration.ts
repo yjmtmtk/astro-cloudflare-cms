@@ -25,9 +25,20 @@ export default function cms(options: CmsOptions = {}): AstroIntegration {
   return {
     name: 'astro-cloudflare-cms',
     hooks: {
-      'astro:config:setup': ({ addMiddleware, updateConfig, logger }) => {
+      'astro:config:setup': ({ addMiddleware, updateConfig, injectRoute, logger }) => {
         updateConfig({ vite: { plugins: [virtualConfigPlugin(cfg)] } });
         addMiddleware({ entrypoint: here('./middleware.ts'), order: 'pre' });
+        const admin = o.adminBasePath;
+        injectRoute({ pattern: `${admin}/api/login`,  entrypoint: here('./routes/admin/api/login.ts') });
+        injectRoute({ pattern: `${admin}/api/logout`, entrypoint: here('./routes/admin/api/logout.ts') });
+        injectRoute({ pattern: `${admin}/api/upload`, entrypoint: here('./routes/admin/api/upload.ts') });
+        injectRoute({ pattern: `${admin}/api/articles`,      entrypoint: here('./routes/admin/api/articles/index.ts') });
+        injectRoute({ pattern: `${admin}/api/articles/[id]`, entrypoint: here('./routes/admin/api/articles/[id].ts') });
+        injectRoute({ pattern: `${admin}/api/categories`,      entrypoint: here('./routes/admin/api/categories/index.ts') });
+        injectRoute({ pattern: `${admin}/api/categories/[id]`, entrypoint: here('./routes/admin/api/categories/[id].ts') });
+        injectRoute({ pattern: `${admin}/api/users`,      entrypoint: here('./routes/admin/api/users/index.ts') });
+        injectRoute({ pattern: `${admin}/api/users/[id]`, entrypoint: here('./routes/admin/api/users/[id].ts') });
+        injectRoute({ pattern: `/cms-media/[...key]`, entrypoint: here('./routes/cms-media/[...key].ts') });
         logger.info(`astro-cloudflare-cms: middleware + virtual config ready (admin=${o.adminBasePath})`);
       },
       'astro:config:done': ({ injectTypes }) => {

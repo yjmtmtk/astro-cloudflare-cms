@@ -1,0 +1,24 @@
+diff --git a/node_modules/@cloudflare/vitest-pool-workers/dist/pool/index.mjs b/node_modules/@cloudflare/vitest-pool-workers/dist/pool/index.mjs
+index 0215c51..4efa2ee 100644
+--- a/node_modules/@cloudflare/vitest-pool-workers/dist/pool/index.mjs
++++ b/node_modules/@cloudflare/vitest-pool-workers/dist/pool/index.mjs
+@@ -552,6 +552,9 @@ async function pushStackedStorage(intoDepth, persistPath) {
+       if (name === BLOBS_DIR_NAME) {
+         break;
+       }
++      if (name.endsWith(".sqlite-shm") || name.endsWith(".sqlite-wal")) {
++        continue;
++      }
+       if (!createdStackFrameKeyPath) {
+         createdStackFrameKeyPath = true;
+         await fs.mkdir(stackFrameKeyPath);
+@@ -573,6 +576,9 @@ async function popStackedStorage(fromDepth, persistPath) {
+       if (name === BLOBS_DIR_NAME) {
+         break;
+       }
++      if (name.endsWith(".sqlite-shm") || name.endsWith(".sqlite-wal")) {
++        continue;
++      }
+       const namePath = path3.join(keyPath, name);
+       assert2(name.endsWith(".sqlite"), `Expected .sqlite, got ${namePath}`);
+       await fs.unlink(namePath);

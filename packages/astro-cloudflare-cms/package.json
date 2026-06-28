@@ -6,6 +6,9 @@
     ".": "./src/integration.ts",
     "./types": "./src/lib/types.ts"
   },
+  "bin": {
+    "astro-cloudflare-cms": "./bin/cli.mjs"
+  },
   "files": ["src", "migrations", "styles.css", "bin"],
   "scripts": {
     "postinstall": "patch-package",

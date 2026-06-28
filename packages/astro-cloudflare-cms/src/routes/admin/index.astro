@@ -1,0 +1,23 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { isMaster } from '../../lib/authz';
+import ArticleList from '../../components/ArticleList.tsx';
+import { config } from 'virtual:acc-config';
+const user = Astro.locals.user!;
+---
+<AdminLayout
+  title="記事"
+  currentPath={Astro.url.pathname}
+  isMaster={isMaster(user)}
+  userName={user.name}
+  userRole={user.role}
+>
+  <a
+    slot="actions"
+    href={`${config.adminBasePath}/articles/new`}
+    class="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+  >
+    新規作成
+  </a>
+  <ArticleList client:load isMaster={isMaster(user)} />
+</AdminLayout>

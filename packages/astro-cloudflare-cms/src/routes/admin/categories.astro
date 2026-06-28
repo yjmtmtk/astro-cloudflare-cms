@@ -1,0 +1,17 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { isMaster } from '../../lib/authz';
+import CategoryManager from '../../components/CategoryManager.tsx';
+import { config } from 'virtual:acc-config';
+const user = Astro.locals.user!;
+if (!isMaster(user)) return Astro.redirect(config.adminBasePath);
+---
+<AdminLayout
+  title="カテゴリ管理"
+  currentPath={Astro.url.pathname}
+  isMaster={isMaster(user)}
+  userName={user.name}
+  userRole={user.role}
+>
+  <CategoryManager client:load />
+</AdminLayout>

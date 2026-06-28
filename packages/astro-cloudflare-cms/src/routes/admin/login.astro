@@ -1,0 +1,19 @@
+---
+import '../../../styles.css';
+import { config } from 'virtual:acc-config';
+const hasError = Astro.url.searchParams.has('error');
+// Already-authenticated users skip the form.
+if (Astro.locals.user) return Astro.redirect(config.adminBasePath);
+---
+<html lang="ja">
+  <head><meta charset="utf-8" /><title>ログイン | {config.brand}</title></head>
+  <body class="min-h-screen grid place-items-center bg-muted">
+    <form method="POST" action={`${config.adminBasePath}/api/login`} class="w-80 space-y-3 rounded-lg border bg-card p-4">
+      <h1 class="text-base font-semibold">管理ログイン</h1>
+      {hasError && <p class="text-sm text-destructive">メールまたはパスワードが違います。</p>}
+      <input class="w-full rounded-md border px-3 py-1.5" type="email" name="email" placeholder="メール" required />
+      <input class="w-full rounded-md border px-3 py-1.5" type="password" name="password" placeholder="パスワード" required />
+      <button class="w-full rounded-md bg-primary px-3 py-1.5 text-primary-foreground" type="submit">ログイン</button>
+    </form>
+  </body>
+</html>

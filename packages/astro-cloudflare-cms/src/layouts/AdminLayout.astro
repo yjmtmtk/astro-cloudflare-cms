@@ -1,0 +1,40 @@
+---
+import '../../styles.css';
+import AdminShell from '../components/AdminShell.tsx';
+import { config } from 'virtual:acc-config';
+
+interface Props {
+  title: string;
+  currentPath: string;
+  isMaster: boolean;
+  userName: string;
+  userRole: string;
+}
+
+const { title, currentPath, isMaster, userName, userRole } = Astro.props;
+
+// shadcn SidebarProvider persists collapse state in the `sidebar_state` cookie.
+// Read it server-side and pass defaultOpen so the collapsed state survives page
+// navigation (nav items are full-page <a href> links). Default open unless 'false'.
+const defaultOpen = Astro.cookies.get('sidebar_state')?.value !== 'false';
+---
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>{title} | {config.brand}</title>
+  </head>
+  <body class="min-h-screen bg-background">
+    <AdminShell
+      client:load
+      title={title}
+      currentPath={currentPath}
+      isMaster={isMaster}
+      userName={userName}
+      userRole={userRole}
+      defaultOpen={defaultOpen}
+    >
+      <Fragment slot="actions"><slot name="actions" /></Fragment>
+      <slot />
+    </AdminShell>
+  </body>
+</html>

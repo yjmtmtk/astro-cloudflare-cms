@@ -1,5 +1,5 @@
 import { config } from 'virtual:acc-config';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { ArticleRow } from '../lib/types';
 import RichTextEditor from './RichTextEditor';
 import CategorySelect from './CategorySelect';
@@ -44,9 +44,19 @@ export default function ArticleForm({
   const [slug, setSlug] = useState(initial?.slug ?? '');
   const [categoryId, setCategoryId] = useState<string | null>(initial?.category_id ?? null);
   const [status, setStatus] = useState<'published' | 'hidden'>(initial?.status ?? 'hidden');
-  const [publishAt, setPublishAt] = useState<number>(
-    initial?.publish_at ?? Math.floor(Date.now() / 1000)
+  // For new articles, start with null and set "now" client-only via useEffect
+  // to avoid React #418 SSR/client hydration mismatch (Date.now() differs).
+  // For edit mode, use the article's existing publish_at.
+  const [publishAt, setPublishAt] = useState<number | null>(
+    initial?.publish_at ?? null
   );
+
+  useEffect(() => {
+    // Only set the default for new articles where no value has been loaded.
+    if (publishAt === null) {
+      setPublishAt(Math.floor(Date.now() / 1000));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [body, setBody] = useState(initial?.body ?? '');
   const [eyecatchUrl, setEyecatchUrl] = useState<string | null>(
     initial?.eyecatch_url ?? null
@@ -63,7 +73,7 @@ export default function ArticleForm({
       body,
       status,
       category_id: categoryId,
-      publish_at: publishAt,
+      publish_at: publishAt ?? Math.floor(Date.now() / 1000),
       eyecatch_url: eyecatchUrl,
     };
     if (slug.trim()) payload.slug = slug.trim();
@@ -140,7 +150,7 @@ export default function ArticleForm({
         <label className="text-sm font-medium">公開日時</label>
         <input
           type="datetime-local"
-          value={toLocalInput(publishAt)}
+          value={publishAt !== null ? toLocalInput(publishAt) : ''}
           onChange={(e) => setPublishAt(fromLocalInput(e.target.value))}
           className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
         />

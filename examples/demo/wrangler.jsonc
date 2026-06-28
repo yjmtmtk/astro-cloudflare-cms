@@ -1,0 +1,14 @@
+{
+  "name": "astro-cloudflare-cms-demo",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "dist/_worker.js/index.js",
+  "assets": { "directory": "dist", "binding": "ASSETS" },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "acc_demo_db", "database_id": "local-placeholder", "migrations_dir": "migrations" }
+  ],
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "acc-demo-media" }
+  ],
+  "vars": { "PUBLIC_R2_BASE_URL": "", "DEFAULT_EYECATCH_URL": "" }
+}

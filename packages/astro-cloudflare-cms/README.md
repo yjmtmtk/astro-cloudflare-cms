@@ -73,8 +73,8 @@ npx astro-cloudflare-cms init [options]
 | Flag | Description |
 |---|---|
 | `--local` | Local-only setup (miniflare) — no Cloudflare account needed |
-| `--db-name <name>` | D1 database name (default: `cms-db`) |
-| `--bucket-name <name>` | R2 bucket name (default: `cms-media`) |
+| `--db-name <name>` | D1 database name (default: `<project>-db`, derived from the directory name) |
+| `--bucket-name <name>` | R2 bucket name (default: `<project>-media`, lowercased/hyphenated for R2) |
 | `--master-email <email>` | Master admin email |
 | `--master-password <pass>` | Master admin password |
 | `--yes` | Skip confirmation prompts |

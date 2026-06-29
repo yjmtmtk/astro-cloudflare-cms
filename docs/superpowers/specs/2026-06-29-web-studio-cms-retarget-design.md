@@ -261,3 +261,58 @@ Implications for later phases:
   guard that warns when no adapter is present or `output: 'server'` is set. The
   README requirement "Astro 5 with `output: 'server'`" is now wrong → it becomes
   "Astro 7, static-first (`output: 'static'`) + the Cloudflare adapter".
+
+## Phase 3 design refinement — "make adoption as simple as possible"
+
+Goal restated by the user: the easiest possible way to add the news feature.
+Target experience:
+
+```bash
+npx astro-cloudflare-cms init    # one command: wire config + backend + scaffold
+npx astro dev                    # D1/R2 work locally (v14 vite-plugin); open /admin
+```
+
+This refines (and partly supersedes) decision 3 and the Architecture section above.
+
+**A. One comprehensive `init`.** `init` becomes the single adoption step: ensure
+`@astrojs/react` + `@astrojs/cloudflare` + `output: 'static'` + the `cms()`
+integration in `astro.config`; create/merge `wrangler.jsonc`; provision D1/R2
+(local/remote); migrate; write `SESSION_SECRET`; seed master; AND scaffold the
+news pages. The Phase 5 DX is pulled into the design now so the Phase 3 scaffold
+is built as a *step of `init`*, not a separate bolt-on.
+
+**B. `astro dev` is the dev command.** Phase 1 confirmed v14's
+`@cloudflare/vite-plugin` serves D1/R2 under `astro dev`. Local dev is just
+`npx astro dev` — no `wrangler dev` / `--persist-to` ritual. Docs and init output
+say so.
+
+**C. News UI components stay IN the package; scaffold only thin pages.**
+Instead of scaffolding `NewsList`/`NewsCard`/`Article` into the host, ship them
+in the package (`astro-cloudflare-cms/news`) written with `@theme` token
+utilities (`bg-bg`, `text-ink`, `font-display`, `text-brand`, `border-line`).
+`init` adds one Tailwind v4 `@source` line to the host `global.css` pointing at
+the package's news components, so the host's Tailwind scans them and themes them
+with the host's own tokens. The only files scaffolded into the host are the **two
+thin pages** `src/pages/news/index.astro` and `src/pages/news/[slug].astro` that
+wrap the host `Layout` and compose the package components. Result: far fewer host
+files to own, component updates flow from the package, look stays native.
+**Linchpin to validate first (3a spike):** that host Tailwind v4 generates the
+token utilities used by the package's news components via an explicit `@source`
+into `node_modules/astro-cloudflare-cms`. If the spike fails, fall back to
+scaffolding the components into host src (the pre-refinement plan).
+
+**D. Zero-config defaults.** Default the host `Layout` to
+`src/layouts/Layout.astro` and rely on the standard web-studio token names
+(`bg/ink/muted/brand/surface/line`, `font-display/body`). `cms({ news: { layout } })`
+is only needed for non-standard hosts.
+
+**Still true:** `/news` is no longer injected by the integration (the scaffolded
+thin pages own it); admin/api/cms-media stay package-injected; scaffolded pages
+`export const prerender = false`; a public data API (`astro-cloudflare-cms/data`)
+feeds the pages. Verification host = the real **test-site** (Phase 3b).
+
+Implementation split: **3a** = package capability (data export, stop injecting
+`/news`, package news components, `@source` spike, init scaffolding + zero-config
+defaults), verified on a minimal Tailwind-v4 host. **3b** = real-world install
+into test-site (`astro add react`/`cloudflare`, `init --local`, build, verify
+native-looking `/news` + admin + create→appears).

@@ -316,3 +316,77 @@ Implementation split: **3a** = package capability (data export, stop injecting
 defaults), verified on a minimal Tailwind-v4 host. **3b** = real-world install
 into test-site (`astro add react`/`cloudflare`, `init --local`, build, verify
 native-looking `/news` + admin + create→appears).
+
+---
+
+## Phase 3a findings
+
+**Verified:** 2026-06-30 on branch `feat/astro7-phase3-news` using `examples/demo` as a minimal Tailwind-v4 host.
+
+### 1. Demo host setup
+
+- Installed `@tailwindcss/vite` (v4.3.2) as devDependency in demo workspace.
+- `examples/demo/astro.config.mjs`: added `vite: { plugins: [tailwindcss()], resolve: { alias: { tailwindcss: tw4path } } }`.
+  - **Monorepo-only quirk:** root `node_modules` already has Tailwind v3 (used by the package's own CSS build). The Tailwind v4 copy bundled inside `@tailwindcss/vite/node_modules/tailwindcss` must be aliased so rolldown's server build picks v4, not v3. Real hosts installing from npm have no v3/v4 conflict — no alias needed.
+- `examples/demo/src/styles/global.css`: `@import "tailwindcss";` + `@theme` block defining 6 color tokens (`--color-bg/ink/muted/brand/surface/line`) + 2 font tokens (`--font-display/body`).
+- `examples/demo/src/layouts/Layout.astro`: imports `global.css`, renders `<html><body class="bg-bg text-ink font-body"><slot/></body></html>`.
+
+### 2. Scaffold output
+
+Ran `scaffoldNews({ cwd: '<demo>', layout: 'src/layouts/Layout.astro' })` directly via Node:
+
+- **Written:** `src/pages/news/index.astro`, `src/pages/news/[slug].astro` — thin pages importing `NewsList`/`Article` from `astro-cloudflare-cms/news` and `listPublicArticles`/`getPublicArticleBySlug`/`renderBody`/`eyecatchOf` from `astro-cloudflare-cms/data`.
+- **`@source` line appended** to `src/styles/global.css`:
+  - Scaffold generates: `@source "../../node_modules/astro-cloudflare-cms/src/news";` (correct for standard npm-installed host where CSS is at `src/styles/global.css`).
+  - **Monorepo demo correction:** manually changed to `@source "../../../../node_modules/astro-cloudflare-cms/src/news";` because the workspace symlink lives in the repo root (4 levels up from `src/styles/`), not in the demo's own `node_modules`. Phase 3b real install will use the scaffold-generated path as-is.
+- Layout import resolved to `../../layouts/Layout.astro` (relative from `src/pages/news/`).
+
+### 3. Build + @source theming proof
+
+Built CSS file: `dist/client/_astro/news.COZ5PqNP.css` (Tailwind v4, `/*! tailwindcss v4.3.2 */`).
+
+The `@theme` tokens from demo's `global.css` are injected as CSS custom properties:
+```
+--color-bg:#fff; --color-ink:#111827; --color-muted:#6b7280; --color-brand:#2563eb;
+--color-surface:#f9fafb; --color-line:#e5e7eb;
+--font-display:"Georgia", serif; --font-body:"Inter", system-ui, sans-serif;
+```
+
+Token utilities confirmed in the built CSS (generated from scanning package's `.astro` components via `@source`):
+
+| Utility class | Generated rule |
+|---|---|
+| `.text-brand` | `color:var(--color-brand)` |
+| `.border-line` | `border-color:var(--color-line)` |
+| `.font-display` | `font-family:var(--font-display)` |
+| `.bg-surface` | `background-color:var(--color-surface)` |
+| `.text-ink` | `color:var(--color-ink)` |
+| `.text-muted` | `color:var(--color-muted)` |
+| `.bg-bg` | `background-color:var(--color-bg)` |
+| `.font-body` | `font-family:var(--font-body)` |
+
+**Conclusion:** `@source` theming works — the package's `NewsCard.astro` / `NewsList.astro` / `Article.astro` token-class usage is scanned and themed with the host's `@theme` values.
+
+### 4. Runtime result
+
+`astro dev` (Astro 7.0.3 + @astrojs/cloudflare v14): **failed to start** — the background worker process crashes with `Missing field \`moduleType\`` from `workerd`. This appears to be an Astro 7 + cloudflare adapter platformProxy incompatibility in dev mode (not present in production build). The `dist/client` and `dist/server` build output is correct.
+
+**Fallback: `npx wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state`** — served the built worker successfully:
+
+- `GET /news` → **200** — rendered two seeded articles ("UIテスト記事" slug `/news/ui`, "Hi" slug `/news/hi`) in the themed `Layout.astro` with all token utility classes (`border-line bg-surface font-display text-ink text-muted font-body`).
+- `GET /news/ui` → **200** — rendered article detail with `text-brand` back-link, `font-display` h1, `font-body text-muted` date.
+- Admin (`/admin/_health`) reachable.
+
+### 5. Gates
+
+- `npx tsc --noEmit`: **0 errors**
+- `npm test`: **111/111 passed** (23 test files)
+
+### 6. What Phase 3b must know
+
+1. **`astro dev` platformProxy crash** (`Missing field \`moduleType\``) needs investigation before Phase 3b can use astro dev. Workaround: build + wrangler dev. May be fixed by a newer `@astrojs/cloudflare` release.
+2. **Monorepo `@source` path** differs from real npm install. The scaffold's generated `../../node_modules/astro-cloudflare-cms/src/news` is correct for Phase 3b's real install — no manual correction needed.
+3. **Tailwind v3/v4 alias** is a monorepo-only issue. Phase 3b host (fresh project, no v3 in root) needs only `@tailwindcss/vite` in `vite.plugins` — no alias.
+4. **`init --local --yes`** is idempotent (skips existing master user, skips existing files unless `--force`); scaffold writes both news pages + appends `@source` if not present.
+5. **Real `SESSION_SECRET`**: `init` adds it to `.dev.vars`; Phase 3b must run init before wrangler dev (or pre-seed `.dev.vars`).
+6. **News CSS** ships as a separate `_astro/news.*.css` chunk (Tailwind v4), separate from the admin/shadcn `styles.*.css` (Tailwind v3). Both load correctly.

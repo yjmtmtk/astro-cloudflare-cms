@@ -233,3 +233,31 @@ Implications for later phases:
 
 Minor (non-blocking, deferred): `SESSION_SECRET` is declared in `Cloudflare.Env`
 but never read at runtime (sessions use opaque UUIDs) — pre-existing, harmless.
+
+## Phase 2 findings (hybrid rendering) — done on branch feat/astro7-phase2-hybrid
+
+Mechanism implemented & verified: the host keeps `output: 'static'` (default) +
+the Cloudflare adapter; every injected CMS route exports `export const prerender
+= false`, so admin, the admin API, `/cms-media`, and `/news` are on-demand while
+the host's marketing pages prerender to static HTML **with zero host-page
+changes**. Gates green (tsc 0, vitest 106).
+
+Verified on the demo:
+- `examples/demo/astro.config.mjs` is `output: 'static'` + `adapter:
+  cloudflare()` (the stale v13 `platformProxy` option was dropped).
+- Build split confirmed: `dist/client/index.html` exists (marketing page,
+  prerendered static); there is NO `dist/client/admin` (admin is on-demand);
+  `dist/server/{entry.mjs,wrangler.json}` is the worker for on-demand routes.
+- Runtime (wrangler dev on the generated config): `/` 200 (static), `/admin/login`
+  200, `/news` 200, login POST 303 + `nanocms_session` cookie, authed
+  `/admin/api/articles` 200 — static + SSR + D1 + auth all coexist.
+
+Implications for later phases:
+- **Phase 3:** the scaffolded `/news` pages/components must also
+  `export const prerender = false` (they are on-demand, reading D1 at request
+  time), and they live in the host `src/` so the host Tailwind v4 scans them.
+- **Phase 5 (init DX):** `init` should configure the host as `output: 'static'`
+  + cloudflare adapter (NOT `output: 'server'`), and may add an integration-level
+  guard that warns when no adapter is present or `output: 'server'` is set. The
+  README requirement "Astro 5 with `output: 'server'`" is now wrong → it becomes
+  "Astro 7, static-first (`output: 'static'`) + the Cloudflare adapter".

@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { storeUpload } from '../../../lib/media';
 
 export const POST: APIRoute = async ({ locals, request }) => {
   if (!locals.user) return new Response('Forbidden', { status: 403 });
-  const env = locals.runtime.env;
   let form: FormData;
   try {
     form = await request.formData();

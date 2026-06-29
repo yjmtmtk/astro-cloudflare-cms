@@ -188,7 +188,9 @@ Resolve each build error in `src/integration.ts` (or the demo config) against As
 
 - [ ] **Step 4: Verify the build output exists**
 
-Run: `ls examples/demo/dist/_worker.js && ls examples/demo/dist/_routes.json`
+> Note (confirmed in Task 4): `@astrojs/cloudflare` v14 changed the output layout. It no longer emits `dist/_worker.js` / `dist/_routes.json`; it generates `dist/client/` plus `dist/server/{entry.mjs, wrangler.json}`. Also `main` must NOT be set in the source `wrangler.jsonc` (the v14 vite plugin validates `main` at config time before the build exists).
+
+Run: `ls examples/demo/dist/server/entry.mjs && ls examples/demo/dist/server/wrangler.json`
 Expected: both exist.
 
 - [ ] **Step 5: Commit**
@@ -211,12 +213,14 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Consumes: Task 4 build.
 - Produces: a working demo on Astro 7 — admin login, article CRUD, image upload, public `/news` all functional.
 
-- [ ] **Step 1: Start wrangler dev**
+- [ ] **Step 1: Start wrangler dev against the adapter-generated config**
+
+> Note (from Task 4): with `@astrojs/cloudflare` v14 the runnable worker config is the **generated** `examples/demo/dist/server/wrangler.json` (it has the correct `main: entry.mjs` and `assets.directory: ../client`). The source `examples/demo/wrangler.jsonc` no longer drives the run (its `assets.directory: "dist"` is stale/ignored). Run from `examples/demo` so the existing local D1/R2 persistence in `examples/demo/.wrangler/` (which holds the seeded master `admin@example.com` / `admin1234`) is reused.
 
 ```bash
-cd examples/demo && npx wrangler dev
+cd examples/demo && npx wrangler dev --config dist/server/wrangler.json
 ```
-Expected: `Ready on http://localhost:8788` with DB/MEDIA bindings (local).
+Expected: `Ready on http://localhost:8788` with DB/MEDIA bindings (local). If the exact flag/path differs on this adapter version, determine the correct invocation from the generated `dist/server/wrangler.json` and the adapter docs; the goal is a running worker that uses `examples/demo/.wrangler/` persistence (so login with the seeded master works). If `--persist-to` is needed to point at `examples/demo/.wrangler`, add it. Also note whether `npx astro dev` now serves D1/R2 locally via the v14 vite plugin (a possible Phase-1 finding) — but the gate here is a working run, by whatever supported path uses the seeded local data.
 
 - [ ] **Step 2: Smoke the key endpoints**
 

@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { isMaster } from '../../../../lib/authz';
 import { listUsers, countUsers } from '../../../../lib/db-users';
 import { getUserByEmail, insertUser } from '../../../../lib/db';
@@ -8,7 +9,7 @@ import type { Role } from '../../../../lib/types';
 
 export const GET: APIRoute = async ({ locals, url }) => {
   if (!isMaster(locals.user)) return new Response('Forbidden', { status: 403 });
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
   const pg = parsePage(url);
   if (!pg) {
     return Response.json(await listUsers(db));
@@ -22,7 +23,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
 export const POST: APIRoute = async ({ locals, request }) => {
   if (!isMaster(locals.user)) return new Response('Forbidden', { status: 403 });
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
 
   let body: { email?: string; name?: string; role?: Role; password?: string };
   try {

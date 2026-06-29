@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { isMaster } from '../../../../lib/authz';
 import { listCategories, countCategories, insertCategory } from '../../../../lib/db-categories';
 import { parsePage } from '../../../../lib/pagination';
@@ -6,7 +7,7 @@ import { ensureSlug } from '../../../../lib/slug';
 
 export const GET: APIRoute = async ({ locals, url }) => {
   if (locals.user === null) return new Response('Forbidden', { status: 403 });
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
   const pg = parsePage(url);
   if (!pg) {
     return Response.json(await listCategories(db));
@@ -37,7 +38,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     created_at: now,
   };
   try {
-    await insertCategory(locals.runtime.env.DB, row);
+    await insertCategory(env.DB, row);
   } catch (e) {
     if (e instanceof Error && e.message.includes('UNIQUE constraint failed')) {
       return new Response('slug already exists', { status: 409 });

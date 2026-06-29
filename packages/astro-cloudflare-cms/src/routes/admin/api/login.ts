@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { login, cookieAttributes } from '../../../lib/auth';
 import { config } from 'virtual:acc-config';
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const env = locals.runtime.env;
+export const POST: APIRoute = async ({ request }) => {
   const form = await request.formData();
   const email = String(form.get('email') ?? '');
   const password = String(form.get('password') ?? '');

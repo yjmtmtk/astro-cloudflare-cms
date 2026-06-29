@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { canCreateArticle, isMaster } from '../../../../lib/authz';
 import { listArticles, countArticles, insertArticle, slugExists } from '../../../../lib/db-articles';
 import { parsePage } from '../../../../lib/pagination';
@@ -13,7 +14,7 @@ function normStatus(v: string | null): ArticleStatus | undefined {
 export const GET: APIRoute = async ({ locals, url }) => {
   const user = locals.user;
   if (!user) return new Response('Forbidden', { status: 403 });
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
   const authorId = isMaster(user) ? url.searchParams.get('author') ?? undefined : user.id;
   const filter = {
     status: normStatus(url.searchParams.get('status')),
@@ -35,7 +36,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
 export const POST: APIRoute = async ({ locals, request }) => {
   const user = locals.user;
   if (!canCreateArticle(user)) return new Response('Forbidden', { status: 403 });
-  const env = locals.runtime.env;
   const db = env.DB;
   let body: Record<string, unknown>;
   try {

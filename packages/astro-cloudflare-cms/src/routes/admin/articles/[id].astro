@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { env } from 'cloudflare:workers';
 import { isMaster } from '../../../lib/authz';
 import ArticleForm from '../../../components/ArticleForm.tsx';
 import { getArticleById } from '../../../lib/db-articles';
@@ -7,7 +8,7 @@ import { canManageArticle } from '../../../lib/authz';
 import { config } from 'virtual:acc-config';
 const user = Astro.locals.user!;
 const id = Astro.params.id!;
-const article = await getArticleById(Astro.locals.runtime.env.DB, id);
+const article = await getArticleById(env.DB, id);
 if (!article) return new Response('Not found', { status: 404 });
 if (!canManageArticle(user, article)) return Astro.redirect(config.adminBasePath);
 ---

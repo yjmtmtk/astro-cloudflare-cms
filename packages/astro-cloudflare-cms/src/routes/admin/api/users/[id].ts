@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { isMaster } from '../../../../lib/authz';
 import { getUserById } from '../../../../lib/db';
 import {
@@ -9,7 +10,7 @@ import type { Role } from '../../../../lib/types';
 
 export const PUT: APIRoute = async ({ locals, params, request }) => {
   if (!isMaster(locals.user)) return new Response('Forbidden', { status: 403 });
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
   const id = params.id!;
 
   let body: { name?: unknown; role?: unknown; password?: unknown };
@@ -69,7 +70,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
 
 export const DELETE: APIRoute = async ({ locals, params }) => {
   if (!isMaster(locals.user)) return new Response('Forbidden', { status: 403 });
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
   const id = params.id!;
 
   // Block self-delete.

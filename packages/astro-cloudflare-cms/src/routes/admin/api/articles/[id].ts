@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { canManageArticle } from '../../../../lib/authz';
 import { getArticleById, updateArticle, deleteArticle, slugExists } from '../../../../lib/db-articles';
 import { ensureSlug } from '../../../../lib/slug';
@@ -6,7 +7,7 @@ import type { ArticleStatus } from '../../../../lib/types';
 import { reconcileArticleMedia, cascadeDeleteArticleMedia, gcOrphans } from '../../../../lib/media';
 
 export const GET: APIRoute = async ({ locals, params }) => {
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
   const article = await getArticleById(db, params.id!);
   if (!article) return new Response('Not found', { status: 404 });
   if (!canManageArticle(locals.user, article)) return new Response('Forbidden', { status: 403 });
@@ -14,7 +15,6 @@ export const GET: APIRoute = async ({ locals, params }) => {
 };
 
 export const PUT: APIRoute = async ({ locals, params, request }) => {
-  const env = locals.runtime.env;
   const db = env.DB;
   const id = params.id!;
   const article = await getArticleById(db, id);
@@ -62,7 +62,6 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
 };
 
 export const DELETE: APIRoute = async ({ locals, params }) => {
-  const env = locals.runtime.env;
   const db = env.DB;
   const article = await getArticleById(db, params.id!);
   if (!article) return new Response(null, { status: 204 });

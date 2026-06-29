@@ -1,9 +1,9 @@
 ---
 import '../../../styles.css';
+import { env } from 'cloudflare:workers';
 import { listPublicArticles } from '../../lib/db-articles';
 import { eyecatchOf } from '../../lib/eyecatch';
 import { config } from 'virtual:acc-config';
-const env = Astro.locals.runtime.env;
 const now = Math.floor(Date.now() / 1000);
 const articles = await listPublicArticles(env.DB, now);
 const fmt = (e: number) => new Date(e * 1000).toLocaleDateString('ja-JP');

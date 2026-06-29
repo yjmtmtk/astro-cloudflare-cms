@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { env } from 'cloudflare:workers';
 import { config } from 'virtual:acc-config';
 import { resolveSession, SESSION_COOKIE } from './lib/auth';
 
@@ -10,7 +11,6 @@ export function isProtectedAdminPath(pathname: string): boolean {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const env = context.locals.runtime.env;
   const sessionId = context.cookies.get(SESSION_COOKIE)?.value ?? null;
   const now = Math.floor(Date.now() / 1000);
   context.locals.user = sessionId ? await resolveSession(env.DB, sessionId, now) : null;

@@ -1,11 +1,12 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { isMaster } from '../../../../lib/authz';
 import { getCategory, updateCategory, deleteCategory } from '../../../../lib/db-categories';
 import { ensureSlug } from '../../../../lib/slug';
 
 export const PUT: APIRoute = async ({ locals, params, request }) => {
   if (!isMaster(locals.user)) return new Response('Forbidden', { status: 403 });
-  const db = locals.runtime.env.DB;
+  const db = env.DB;
   const id = params.id!;
   const existing = await getCategory(db, id);
   if (!existing) return new Response('Not found', { status: 404 });
@@ -31,6 +32,6 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
 
 export const DELETE: APIRoute = async ({ locals, params }) => {
   if (!isMaster(locals.user)) return new Response('Forbidden', { status: 403 });
-  await deleteCategory(locals.runtime.env.DB, params.id!);
+  await deleteCategory(env.DB, params.id!);
   return new Response(null, { status: 204 });
 };

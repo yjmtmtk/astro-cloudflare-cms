@@ -1,11 +1,11 @@
 ---
 import '../../../styles.css';
+import { env } from 'cloudflare:workers';
 import { getPublicArticleBySlug, getArticleBySlug } from '../../lib/db-articles';
 import { canManageArticle } from '../../lib/authz';
 import { eyecatchOf } from '../../lib/eyecatch';
 import { renderBody } from '../../lib/render-body';
 import { config } from 'virtual:acc-config';
-const env = Astro.locals.runtime.env;
 const slug = Astro.params.slug!;
 const now = Math.floor(Date.now() / 1000);
 

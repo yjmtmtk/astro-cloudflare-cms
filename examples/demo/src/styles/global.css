@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color tokens */
+  --color-bg: #ffffff;
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-brand: #2563eb;
+  --color-surface: #f9fafb;
+  --color-line: #e5e7eb;
+
+  /* Font tokens */
+  --font-display: "Georgia", serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+/* In a real npm-installed host: @source "../../node_modules/astro-cloudflare-cms/src/news"; */
+/* Monorepo: the workspace symlink is in root node_modules (4 levels up from src/styles/) */
+@source "../../../../node_modules/astro-cloudflare-cms/src/news";

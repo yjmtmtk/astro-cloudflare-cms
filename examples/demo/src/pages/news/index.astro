@@ -1,0 +1,15 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { NewsList } from 'astro-cloudflare-cms/news';
+import { listPublicArticles } from 'astro-cloudflare-cms/data';
+import { env } from 'cloudflare:workers';
+const now = Math.floor(Date.now() / 1000);
+const articles = await listPublicArticles(env.DB, now);
+---
+<Layout title="News">
+  <main class="mx-auto max-w-5xl px-6 py-16">
+    <h1 class="font-display text-3xl text-ink">News</h1>
+    <NewsList articles={articles} newsBasePath="/news" r2BaseUrl={import.meta.env.PUBLIC_R2_BASE_URL ?? ''} />
+  </main>
+</Layout>

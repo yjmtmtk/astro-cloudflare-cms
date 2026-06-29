@@ -1,0 +1,22 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { Article } from 'astro-cloudflare-cms/news';
+import { getPublicArticleBySlug, renderBody, eyecatchOf } from 'astro-cloudflare-cms/data';
+import { env } from 'cloudflare:workers';
+const { slug } = Astro.params;
+const now = Math.floor(Date.now() / 1000);
+const article = await getPublicArticleBySlug(env.DB, slug ?? '', now);
+if (!article) return Astro.redirect('/404', 404);
+const html = renderBody(article.body);
+const heroUrl = eyecatchOf(article, { baseUrl: import.meta.env.PUBLIC_R2_BASE_URL ?? '' });
+---
+<Layout title={article.title}>
+  <Article
+    title={article.title}
+    publishAt={article.publish_at}
+    html={html}
+    heroUrl={heroUrl}
+    backHref="/news"
+  />
+</Layout>

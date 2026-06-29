@@ -1,0 +1,29 @@
+---
+import type { PublicArticleListItem } from '../lib/db-articles';
+import { eyecatchOf } from '../lib/eyecatch';
+import NewsCard from './NewsCard.astro';
+
+interface Props {
+  articles: PublicArticleListItem[];
+  baseUrl?: string;
+  newsBasePath: string;
+  r2BaseUrl?: string;
+  defaultEyecatchUrl?: string;
+}
+
+const { articles, newsBasePath, r2BaseUrl, defaultEyecatchUrl } = Astro.props;
+---
+
+{articles.length === 0 ? (
+  <p class="text-muted font-body py-12 text-center">記事がまだありません。</p>
+) : (
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {articles.map((article) => (
+      <NewsCard
+        article={article}
+        href={`${newsBasePath}/${article.slug}`}
+        imageUrl={eyecatchOf(article, { baseUrl: r2BaseUrl, defaultUrl: defaultEyecatchUrl })}
+      />
+    ))}
+  </div>
+)}

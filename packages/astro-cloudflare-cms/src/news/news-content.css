@@ -1,0 +1,130 @@
+/* news-content.css — scoped article body typography using @theme token CSS vars */
+
+.news-content {
+  color: var(--color-ink);
+  line-height: 1.75;
+  font-size: 1rem;
+}
+
+.news-content h2,
+.news-content h3,
+.news-content h4 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+}
+
+.news-content h2 {
+  font-size: 1.5rem;
+}
+
+.news-content h3 {
+  font-size: 1.25rem;
+}
+
+.news-content h4 {
+  font-size: 1.1rem;
+}
+
+.news-content p {
+  margin-top: 0;
+  margin-bottom: 1.25em;
+}
+
+.news-content ul,
+.news-content ol {
+  margin-bottom: 1.25em;
+  padding-left: 1.5em;
+}
+
+.news-content ul {
+  list-style-type: disc;
+}
+
+.news-content ol {
+  list-style-type: decimal;
+}
+
+.news-content li {
+  margin-bottom: 0.4em;
+}
+
+.news-content blockquote {
+  border-left: 3px solid var(--color-line);
+  margin: 1.5em 0;
+  padding: 0.5em 1em;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.news-content hr {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 2em 0;
+}
+
+.news-content a {
+  color: var(--color-brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.news-content a:hover {
+  opacity: 0.8;
+}
+
+.news-content code {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.news-content pre {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  padding: 1em 1.25em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.news-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.875em;
+}
+
+.news-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5em 0;
+}
+
+.news-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.9em;
+}
+
+.news-content th,
+.news-content td {
+  border: 1px solid var(--color-line);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+.news-content th {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-weight: 600;
+}

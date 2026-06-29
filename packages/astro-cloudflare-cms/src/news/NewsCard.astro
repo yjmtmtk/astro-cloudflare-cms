@@ -1,0 +1,21 @@
+---
+import type { PublicArticleListItem } from '../lib/db-articles';
+
+interface Props {
+  article: PublicArticleListItem;
+  href: string;
+  imageUrl: string;
+}
+
+const { article, href, imageUrl } = Astro.props;
+const fmt = (e: number) => new Date(e * 1000).toLocaleDateString('ja-JP');
+---
+
+<a href={href} class="group block overflow-hidden rounded-lg border border-line bg-surface transition-opacity hover:opacity-90">
+  <img src={imageUrl} alt="" class="aspect-[16/9] w-full object-cover" />
+  <div class="p-4">
+    <time class="text-xs text-muted font-body">{fmt(article.publish_at)}</time>
+    <h2 class="mt-1 font-display text-lg text-ink leading-snug">{article.title}</h2>
+    {article.excerpt && <p class="mt-1 text-sm text-muted font-body line-clamp-2">{article.excerpt}</p>}
+  </div>
+</a>

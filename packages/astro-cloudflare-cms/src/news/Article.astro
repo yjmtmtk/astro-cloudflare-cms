@@ -1,0 +1,29 @@
+---
+import './news-content.css';
+
+interface Props {
+  title: string;
+  publishAt: number;
+  html: string;
+  heroUrl: string;
+  backHref: string;
+}
+
+const { title, publishAt, html, heroUrl, backHref } = Astro.props;
+const dateStr = new Date(publishAt * 1000).toLocaleDateString('ja-JP');
+---
+
+<div class="max-w-3xl mx-auto px-4 py-8 font-body text-ink bg-bg">
+  <a href={backHref} class="inline-block mb-6 text-sm text-brand hover:underline font-body">← News</a>
+
+  <img
+    src={heroUrl}
+    alt=""
+    class="aspect-[16/9] w-full object-cover rounded-lg mb-6"
+  />
+
+  <time class="block text-sm text-muted mb-2">{dateStr}</time>
+  <h1 class="font-display text-3xl text-ink leading-tight mb-8">{title}</h1>
+
+  <article class="news-content" set:html={html} />
+</div>

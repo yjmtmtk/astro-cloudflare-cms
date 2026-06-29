@@ -38,7 +38,22 @@ const USAGE = `\
 Usage: astro-cloudflare-cms <command> [options]
 
 Commands:
-  init          Initialise astro-cloudflare-cms in the current project
+  init           Initialise astro-cloudflare-cms in the current project
+  create-user    Create a user (author by default)
+  list-users     List all users
+  delete-user    Delete a user by email
+  set-password   Reset a user's password by email
+
+User-command options:
+  --email <e>        Target email (or ACC_USER_EMAIL env)
+  --name <n>         Display name (create-user; default = email local part)
+  --role <r>         author | master (create-user; default author)
+  --password <p>     Password (or ACC_USER_PASSWORD env; min 8 chars)
+  --generate         Generate a random password and print it once
+  --db-name <n>      D1 database name (default: read from wrangler config)
+  --local            Target the local (miniflare) D1 instead of remote
+  --json             list-users: output JSON
+  --yes              Non-interactive (no prompts / skip confirmation)
 
 Options:
   --help, -h    Show this help message
@@ -61,6 +76,12 @@ if (flags.version) {
 if (cmd === 'init') {
   const { init } = await import('../src/cli/init.mjs');
   await init(flags);
+} else if (cmd === 'create-user' || cmd === 'list-users' || cmd === 'delete-user' || cmd === 'set-password') {
+  const m = await import('../src/cli/users-commands.mjs');
+  if (cmd === 'create-user') await m.createUser(flags);
+  else if (cmd === 'list-users') await m.listUsers(flags);
+  else if (cmd === 'delete-user') await m.deleteUser(flags);
+  else await m.setPassword(flags);
 } else {
   process.stderr.write(USAGE);
   process.exit(1);

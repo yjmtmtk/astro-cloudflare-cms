@@ -84,6 +84,31 @@ function stripComments(src) {
 }
 
 // ---------------------------------------------------------------------------
+// readDbBindingName
+// ---------------------------------------------------------------------------
+
+/**
+ * Read the database_name of the d1_databases entry bound as `DB`.
+ * Used by user-management CLI commands to target the configured database.
+ * Returns null for toml (not parsed) or when no DB binding is present.
+ * @param {string} text   Raw config file contents
+ * @param {'jsonc'|'json'|'toml'} format
+ * @returns {string | null}
+ */
+export function readDbBindingName(text, format) {
+  if (format === 'toml') return null;
+  let cfg;
+  try {
+    cfg = JSON.parse(stripComments(text));
+  } catch {
+    return null;
+  }
+  const list = Array.isArray(cfg?.d1_databases) ? cfg.d1_databases : [];
+  const entry = list.find((e) => e && e.binding === 'DB');
+  return entry && typeof entry.database_name === 'string' ? entry.database_name : null;
+}
+
+// ---------------------------------------------------------------------------
 // Date comparison helpers
 // ---------------------------------------------------------------------------
 

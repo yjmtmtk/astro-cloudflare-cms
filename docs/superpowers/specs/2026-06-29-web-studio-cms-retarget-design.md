@@ -182,3 +182,54 @@ web-studio host (Astro 7, Tailwind v4, static-first)
 5. `init` wires the host (adapter/react/hybrid/wrangler/D1/R2/migration/secret/
    master) and scaffolds the editable `/news` kit, verified on a real web-studio
    consumer.
+
+## Phase 1 findings (Astro 7 migration) — done on branch feat/astro7-foundation
+
+Resolved stack: **astro 7.0.3, @astrojs/cloudflare 14.0.1, @astrojs/react 6.0.0,
+react/react-dom 19.2.7, wrangler 4.105.0.** Gates green: `tsc --noEmit` 0,
+vitest 106/106, demo builds, runtime verified (login + authed API + D1 reads).
+
+What broke and how it was resolved:
+
+1. **`Astro.locals.runtime.env` was REMOVED in Astro v6.** It throws at runtime
+   with an explicit message to use `import { env } from 'cloudflare:workers'`.
+   All 14 runtime files (middleware, every API route, the `.astro` pages, the
+   media proxy) were migrated to the module-scope `env` import. Types moved from
+   `App.Locals.runtime.env` to a `Cloudflare.Env` augmentation in both
+   `src/virtual.d.ts` and the `injectTypes` block of `integration.ts`.
+   **This obsoletes the old design rule "env via `locals.runtime.env`"** — update
+   the READMEs accordingly.
+2. **`@astrojs/cloudflare` v14 output layout changed.** No more
+   `dist/_worker.js` / `dist/_routes.json`; it now emits `dist/client/` plus
+   `dist/server/{entry.mjs, wrangler.json}`. The source `wrangler.jsonc` must
+   NOT set `main` (v14's `@cloudflare/vite-plugin` validates `main` at config
+   time, before the build exists). Run the built worker via the generated config:
+   `npx wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state`
+   from `examples/demo` (`--persist-to` is required to reuse the seeded local D1;
+   without it wrangler uses an empty DB next to the config and login fails).
+3. **Integration API is unchanged on Astro 7.** `injectRoute` (string
+   entrypoints), `addMiddleware`, the virtual-config Vite plugin, and
+   `injectTypes` all work without logic changes — only the injected *type*
+   content changed (point 1). No `output: 'hybrid'` was ever used.
+4. **vitest-pool-workers 0.6.16 + the existing teardown patch still apply** — no
+   change needed; 106 tests stayed green.
+5. **Astro 7 ships a built-in CSRF origin check.** Non-browser POSTs (curl) must
+   send a same-origin `Origin` header; browsers are unaffected.
+
+Implications for later phases:
+
+- **Phase 2 (hybrid):** v14 uses `@cloudflare/vite-plugin`, so **`astro dev` now
+  serves D1/R2 via workerd** — local dev is no longer wrangler-dev-only. Confirm
+  `output: 'static'` + adapter + per-route `prerender = false` behavior on
+  Astro 7 from this baseline.
+- **Phase 3 (`/news` scaffold):** scaffolded SSR pages must use
+  `import { env } from 'cloudflare:workers'` (not `locals.runtime.env`).
+- **Phase 5 (init DX):** the CLI's wrangler-config merge must NOT write `main`;
+  must document/emit the `--persist-to` run command and target the generated
+  `dist/server/wrangler.json`; remove the stale `platformProxy: { enabled: true }`
+  from the host `astro.config.mjs` (v13 option, silently ignored by v14).
+- **Docs:** README "Design rules" item on `locals.runtime.env` is now wrong;
+  the deploy/run instructions need the v14 config + `--persist-to` note.
+
+Minor (non-blocking, deferred): `SESSION_SECRET` is declared in `Cloudflare.Env`
+but never read at runtime (sessions use opaque UUIDs) — pre-existing, harmless.

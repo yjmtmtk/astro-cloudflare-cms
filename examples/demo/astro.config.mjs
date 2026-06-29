@@ -4,7 +4,9 @@ import cloudflare from '@astrojs/cloudflare';
 import cms from 'astro-cloudflare-cms';
 
 export default defineConfig({
-  output: 'server',
-  adapter: cloudflare({ platformProxy: { enabled: true } }),
+  // static-first: marketing pages prerender; CMS routes opt into SSR via
+  // `export const prerender = false` (see the integration's injected routes).
+  output: 'static',
+  adapter: cloudflare(),
   integrations: [react(), cms()],
 });

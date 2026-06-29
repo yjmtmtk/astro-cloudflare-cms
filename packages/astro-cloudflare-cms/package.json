@@ -15,6 +15,7 @@
     ".": "./src/integration.ts",
     "./types": "./src/lib/types.ts",
     "./data": "./src/data.ts",
+    "./news": "./src/news/index.ts",
     "./styles.css": "./styles.css"
   },
   "bin": {

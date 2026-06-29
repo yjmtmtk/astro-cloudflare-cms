@@ -3,6 +3,7 @@ import { basename, join } from 'node:path';
 import { hashPassword, genSessionSecret } from './crypto.mjs';
 import { findWranglerConfig, mergeWranglerConfig } from './wrangler-config.mjs';
 import { run, log, warn, die, prompt } from './util.mjs';
+import { scaffoldNews } from './scaffold.mjs';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -87,7 +88,7 @@ function parseMasterCount(stdout) {
  */
 export async function init(flags) {
   // ── Step 1: Resolve options ────────────────────────────────────────────────
-  log('[1/8] Resolving options…');
+  log('[1/9] Resolving options…');
   const cwd = process.cwd();
   // R2 bucket names allow only lowercase alphanumerics + hyphens; D1 names tolerate the same.
   // Derive defaults from a sanitized project name so both resources are valid for every wrangler command.
@@ -97,6 +98,9 @@ export async function init(flags) {
   const bucketName = /** @type {string} */ (flags['bucket-name']  ?? `${base}-media`);
   const local      = !!flags.local;
   const yes        = !!flags.yes;
+  const noScaffold = !!flags['no-scaffold'];
+  const layout     = /** @type {string | undefined} */ (flags['layout']);
+  const force      = !!flags.force;
 
   let masterEmail = /** @type {string | undefined} */ (
     flags['master-email'] ?? process.env.ACC_MASTER_EMAIL
@@ -119,7 +123,7 @@ export async function init(flags) {
   log(`  db: ${dbName}, bucket: ${bucketName}, local: ${local}`);
 
   // ── Step 2: D1 ────────────────────────────────────────────────────────────
-  log('[2/8] Setting up D1 database…');
+  log('[2/9] Setting up D1 database…');
   let dbId = 'local-placeholder';
 
   if (local) {
@@ -182,7 +186,7 @@ export async function init(flags) {
   }
 
   // ── Step 3: R2 ────────────────────────────────────────────────────────────
-  log('[3/8] Setting up R2 bucket…');
+  log('[3/9] Setting up R2 bucket…');
   if (local) {
     log('  --local flag set; skipping R2 (miniflare auto-provisions).');
   } else {
@@ -201,11 +205,11 @@ export async function init(flags) {
   }
 
   // ── Step 4: Wrangler config ────────────────────────────────────────────────
-  log('[4/8] Updating wrangler config…');
+  log('[4/9] Updating wrangler config…');
   const cfgInfo = findWranglerConfig(cwd);
   if (!cfgInfo) {
     die(
-      '[4/8] No wrangler config found in the current directory.\n' +
+      '[4/9] No wrangler config found in the current directory.\n' +
       'Create wrangler.jsonc / wrangler.json / wrangler.toml first, then re-run:\n' +
       '  npx astro-cloudflare-cms init'
     );
@@ -217,7 +221,7 @@ export async function init(flags) {
     mergeResult = mergeWranglerConfig(rawText, cfgInfo.format, { dbName, dbId, bucketName });
   } catch (err) {
     die(
-      `[4/8] Failed to parse ${cfgInfo.path}: ${err.message}\n` +
+      `[4/9] Failed to parse ${cfgInfo.path}: ${err.message}\n` +
       'Fix the config file syntax, then re-run: npx astro-cloudflare-cms init'
     );
   }
@@ -236,7 +240,7 @@ export async function init(flags) {
   }
 
   // ── Step 5: Migrations ────────────────────────────────────────────────────
-  log('[5/8] Running D1 migrations…');
+  log('[5/9] Running D1 migrations…');
   const migrationsDir = join(cwd, 'migrations');
   if (!existsSync(migrationsDir)) {
     mkdirSync(migrationsDir, { recursive: true });
@@ -257,14 +261,14 @@ export async function init(flags) {
   const migrateResult = run('npx', migrateArgs, { cwd });
   if (migrateResult.status !== 0) {
     die(
-      `[5/8] Migration failed (status ${migrateResult.status}).\n` +
+      `[5/9] Migration failed (status ${migrateResult.status}).\n` +
       `Resume with: npx wrangler d1 migrations apply ${dbName} ${local ? '--local' : '--remote'}`
     );
   }
   log('  Migrations applied successfully.');
 
   // ── Step 6: SESSION_SECRET ────────────────────────────────────────────────
-  log('[6/8] Checking SESSION_SECRET…');
+  log('[6/9] Checking SESSION_SECRET…');
   const devVarsPath = join(cwd, '.dev.vars');
   let devVarsContent = '';
   if (existsSync(devVarsPath)) {
@@ -284,7 +288,7 @@ export async function init(flags) {
   log('  For production, run: npx wrangler secret put SESSION_SECRET');
 
   // ── Step 7: Master user ───────────────────────────────────────────────────
-  log('[7/8] Provisioning master user…');
+  log('[7/9] Provisioning master user…');
   const dbTarget = local ? '--local' : '--remote';
   const countArgs = [
     'wrangler', 'd1', 'execute', dbName,
@@ -311,7 +315,7 @@ export async function init(flags) {
     try {
       hashResult = await hashPassword(masterPassword);
     } catch (err) {
-      die(`[7/8] Password hashing failed: ${err.message}`);
+      die(`[7/9] Password hashing failed: ${err.message}`);
     }
 
     const { hash, salt } = hashResult;
@@ -334,16 +338,36 @@ export async function init(flags) {
     const insertResult = run('npx', insertArgs, { cwd });
     if (insertResult.status !== 0) {
       die(
-        `[7/8] Failed to insert master user (status ${insertResult.status}).\n` +
+        `[7/9] Failed to insert master user (status ${insertResult.status}).\n` +
         `Resume with: npx astro-cloudflare-cms init [same flags]`
       );
     }
     log(`  Master user created: ${masterEmail}`);
   }
 
-  // ── Step 8: Done ─────────────────────────────────────────────────────────
+  // ── Step 8: Scaffold /news pages ─────────────────────────────────────────
+  log('[8/9] Scaffolding /news pages…');
+  if (noScaffold) {
+    log('  --no-scaffold flag set; skipping.');
+  } else {
+    try {
+      const result = await scaffoldNews({ cwd, layout, force });
+      if (result.written.length > 0) {
+        for (const p of result.written) log(`  Written: ${p}`);
+      }
+      if (result.skipped.length > 0) {
+        for (const p of result.skipped) log(`  Skipped (already exists): ${p}`);
+        if (!force) log('  Use --force to overwrite existing pages.');
+      }
+    } catch (err) {
+      warn(`  Scaffold failed: ${err.message}`);
+      warn('  You can scaffold manually by copying src/scaffold/news/ from the package.');
+    }
+  }
+
+  // ── Step 9: Done ─────────────────────────────────────────────────────────
   log('');
-  log('[8/8] Setup complete! Next steps:');
+  log('[9/9] Setup complete! Next steps:');
   log('');
   log('  1. Build the project:');
   log('       npm run build && npx wrangler dev');

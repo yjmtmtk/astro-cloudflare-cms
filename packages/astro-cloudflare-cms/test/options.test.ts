@@ -9,6 +9,7 @@ describe('resolveOptions', () => {
       mediaBasePath: '/cms-media',
       brand: 'astro-cloudflare-cms',
       defaultEyecatchUrl: '',
+      news: { layout: 'src/layouts/Layout.astro' },
     });
   });
 

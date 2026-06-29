@@ -1,11 +1,21 @@
 import type { APIRoute } from 'astro';
 import { isMaster } from '../../../../lib/authz';
-import { listCategories, insertCategory } from '../../../../lib/db-categories';
+import { listCategories, countCategories, insertCategory } from '../../../../lib/db-categories';
+import { parsePage } from '../../../../lib/pagination';
 import { ensureSlug } from '../../../../lib/slug';
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ locals, url }) => {
   if (locals.user === null) return new Response('Forbidden', { status: 403 });
-  return Response.json(await listCategories(locals.runtime.env.DB));
+  const db = locals.runtime.env.DB;
+  const pg = parsePage(url);
+  if (!pg) {
+    return Response.json(await listCategories(db));
+  }
+  const [items, total] = await Promise.all([
+    listCategories(db, { limit: pg.pageSize, offset: pg.offset }),
+    countCategories(db),
+  ]);
+  return Response.json({ items, total, page: pg.page, pageSize: pg.pageSize });
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {

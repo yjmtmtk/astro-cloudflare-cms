@@ -2,7 +2,7 @@ import { env } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
 import { insertUser } from '@/lib/db';
 import {
-  listUsers, countArticlesByAuthor, updateUserProfile, deleteUser,
+  listUsers, countUsers, countArticlesByAuthor, updateUserProfile, deleteUser,
 } from '@/lib/db-users';
 import type { UserRow } from '@/lib/types';
 
@@ -29,6 +29,15 @@ describe('db-users', () => {
        VALUES ('art1','s','T','<p>x</p>',NULL,NULL,NULL,'u1','hidden',1000,1000,1000)`
     ).run();
     expect(await countArticlesByAuthor(env.DB, 'u1')).toBe(1);
+  });
+
+  it('paginates with limit/offset (created_at asc) and counts', async () => {
+    for (let i = 1; i <= 5; i++) {
+      await insertUser(env.DB, u({ id: `u${i}`, email: `u${i}@x`, created_at: i }));
+    }
+    expect((await listUsers(env.DB, { limit: 2, offset: 0 })).map((x) => x.id)).toEqual(['u1', 'u2']);
+    expect((await listUsers(env.DB, { limit: 2, offset: 2 })).map((x) => x.id)).toEqual(['u3', 'u4']);
+    expect(await countUsers(env.DB)).toBe(5);
   });
 
   it('updates profile and deletes', async () => {

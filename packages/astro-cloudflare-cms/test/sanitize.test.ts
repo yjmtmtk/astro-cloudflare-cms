@@ -10,6 +10,9 @@ describe('sanitizeBody', () => {
     expect(out).toContain('<h2>H</h2>');
     expect(out).toContain('<li>x</li>');
   });
+  it('keeps hr (horizontal rule from the editor)', () => {
+    expect(sanitizeBody('<p>a</p><hr><p>b</p>')).toContain('<hr');
+  });
   it('keeps img with /cms-media src + alt', () => {
     const out = sanitizeBody('<p><img src="/cms-media/articles/a.webp" alt="pic"></p>');
     expect(out).toContain('src="/cms-media/articles/a.webp"');

@@ -4,6 +4,7 @@ import { getPublicArticleBySlug, getArticleBySlug } from '../../lib/db-articles'
 import { canManageArticle } from '../../lib/authz';
 import { eyecatchOf } from '../../lib/eyecatch';
 import { renderBody } from '../../lib/render-body';
+import { config } from 'virtual:acc-config';
 const env = Astro.locals.runtime.env;
 const slug = Astro.params.slug!;
 const now = Math.floor(Date.now() / 1000);
@@ -35,6 +36,12 @@ const fmt = (e: number) => new Date(e * 1000).toLocaleDateString('ja-JP');
       </div>
     )}
     <main class="mx-auto max-w-3xl p-4">
+      <a
+        href={config.newsBasePath}
+        class="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <span aria-hidden="true">←</span> News一覧へ
+      </a>
       <img src={hero} alt="" class="mb-4 aspect-video w-full rounded-lg object-cover" />
       <time class="text-sm text-muted-foreground">{fmt(article.publish_at)}</time>
       <h1 class="mb-4 mt-1 text-2xl font-bold">{article.title}</h1>

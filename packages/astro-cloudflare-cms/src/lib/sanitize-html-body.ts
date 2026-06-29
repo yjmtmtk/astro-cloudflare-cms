@@ -2,7 +2,7 @@ import { transformSync, walkSync, ELEMENT_NODE, COMMENT_NODE, type Node } from '
 import sanitize from 'ultrahtml/transformers/sanitize';
 
 const ALLOWED_TAGS = [
-  'p', 'br', 'strong', 'em', 'b', 'i', 'u', 's',
+  'p', 'br', 'hr', 'strong', 'em', 'b', 'i', 'u', 's',
   'h1', 'h2', 'h3', 'ul', 'ol', 'li',
   'blockquote', 'code', 'pre', 'a', 'img',
 ];

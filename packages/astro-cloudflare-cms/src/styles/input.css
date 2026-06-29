@@ -46,3 +46,11 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
+/* Tiptap editable area. Kept OUTSIDE @layer so Tailwind's content scanner
+   does not tree-shake it — the `.ProseMirror` class is added by Tiptap at
+   runtime and never appears in source files. The outer container shows a
+   focus-within ring instead of the inner browser outline. */
+.ProseMirror { outline: none; min-height: 14rem; }
+.ProseMirror > :first-child { margin-top: 0; }
+.ProseMirror a { @apply text-primary underline underline-offset-2; cursor: pointer; }

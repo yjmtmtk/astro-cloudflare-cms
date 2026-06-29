@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { canCreateArticle, isMaster } from '../../../../lib/authz';
-import { listArticles, insertArticle, slugExists } from '../../../../lib/db-articles';
+import { listArticles, countArticles, insertArticle, slugExists } from '../../../../lib/db-articles';
+import { parsePage } from '../../../../lib/pagination';
 import { ensureSlug } from '../../../../lib/slug';
 import type { ArticleStatus } from '../../../../lib/types';
 import { reconcileArticleMedia, gcOrphans } from '../../../../lib/media';
@@ -14,13 +15,21 @@ export const GET: APIRoute = async ({ locals, url }) => {
   if (!user) return new Response('Forbidden', { status: 403 });
   const db = locals.runtime.env.DB;
   const authorId = isMaster(user) ? url.searchParams.get('author') ?? undefined : user.id;
-  const items = await listArticles(db, {
+  const filter = {
     status: normStatus(url.searchParams.get('status')),
     categoryId: url.searchParams.get('category') ?? undefined,
     q: url.searchParams.get('q') ?? undefined,
     authorId,
-  });
-  return Response.json(items);
+  };
+  const pg = parsePage(url);
+  if (!pg) {
+    return Response.json(await listArticles(db, filter));
+  }
+  const [items, total] = await Promise.all([
+    listArticles(db, { ...filter, limit: pg.pageSize, offset: pg.offset }),
+    countArticles(db, filter),
+  ]);
+  return Response.json({ items, total, page: pg.page, pageSize: pg.pageSize });
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {

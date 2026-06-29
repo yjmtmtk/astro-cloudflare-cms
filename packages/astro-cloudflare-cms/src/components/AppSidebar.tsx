@@ -1,5 +1,5 @@
 import { config } from 'virtual:acc-config';
-import { Newspaper, FolderTree, Users, Shield, User, LogOut } from 'lucide-react';
+import { Newspaper, FolderTree, Users, Shield, User, LogOut, ExternalLink } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -82,6 +82,14 @@ export default function AppSidebar({ currentPath, isMaster, userName, userRole }
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="公開サイトを見る">
+              <a href={`${config.newsBasePath}`} target="_blank" rel="noopener">
+                <ExternalLink />
+                <span>公開サイト</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip={`${userName}（${userRole}）`}>
               {isMaster ? <Shield /> : <User />}

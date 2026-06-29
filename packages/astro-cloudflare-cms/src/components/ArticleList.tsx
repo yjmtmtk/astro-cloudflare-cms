@@ -10,7 +10,10 @@ import { Input } from './ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from './ui/select';
+import Pager from './Pager';
 import { Trash2 } from 'lucide-react';
+
+const PAGE_SIZE = 20;
 
 interface Props {
   isMaster: boolean;
@@ -36,6 +39,8 @@ export default function ArticleList({ isMaster }: Props) {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchInput, setSearchInput] = useState('');
   const [q, setQ] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   // 300ms debounce for title search
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,6 +49,7 @@ export default function ArticleList({ isMaster }: Props) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setQ(value);
+      setPage(1);
     }, 300);
   }
 
@@ -69,18 +75,22 @@ export default function ArticleList({ isMaster }: Props) {
       if (statusFilter !== 'all') params.set('status', statusFilter);
       if (isMaster && categoryFilter !== 'all') params.set('category', categoryFilter);
       if (q) params.set('q', q);
+      params.set('page', String(page));
+      params.set('pageSize', String(PAGE_SIZE));
       const res = await fetch(
-        `${config.adminBasePath}/api/articles` + (params.toString() ? '?' + params.toString() : ''),
+        `${config.adminBasePath}/api/articles?` + params.toString(),
         { credentials: 'same-origin' }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setArticles(await res.json() as ArticleListItem[]);
+      const data = await res.json() as { items: ArticleListItem[]; total: number };
+      setArticles(data.items);
+      setTotal(data.total);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, categoryFilter, q, isMaster]);
+  }, [statusFilter, categoryFilter, q, isMaster, page]);
 
   useEffect(() => {
     fetchArticles();
@@ -104,7 +114,7 @@ export default function ArticleList({ isMaster }: Props) {
     <div className="space-y-3">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
           <SelectTrigger className="w-36">
             <SelectValue placeholder="ステータス" />
           </SelectTrigger>
@@ -116,7 +126,7 @@ export default function ArticleList({ isMaster }: Props) {
         </Select>
 
         {isMaster && (
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1); }}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="カテゴリ" />
             </SelectTrigger>
@@ -225,6 +235,10 @@ export default function ArticleList({ isMaster }: Props) {
             })}
           </TableBody>
         </Table>
+      )}
+
+      {!loading && !error && (
+        <Pager page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
       )}
     </div>
   );

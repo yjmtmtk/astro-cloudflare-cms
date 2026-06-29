@@ -2,7 +2,7 @@ import { env } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
 import { insertUser } from '@/lib/db';
 import {
-  listArticles, getArticleById, getArticleBySlug, slugExists,
+  listArticles, countArticles, getArticleById, getArticleBySlug, slugExists,
   insertArticle, updateArticle, deleteArticle,
 } from '@/lib/db-articles';
 import type { ArticleRow, UserRow } from '@/lib/types';
@@ -38,6 +38,23 @@ describe('db-articles', () => {
     expect((await listArticles(env.DB, { q: 'apple' })).map((a) => a.id)).toEqual(['a1']);
     expect((await listArticles(env.DB, { authorId: 'a' })).length).toBe(2);
     expect((await listArticles(env.DB, { authorId: 'other' })).length).toBe(0);
+  });
+
+  it('paginates with limit/offset (newest first) and counts respecting filters', async () => {
+    await insertUser(env.DB, author);
+    for (let i = 1; i <= 5; i++) {
+      await insertArticle(env.DB, art({ id: `p${i}`, slug: `p${i}`, title: `T${i}`, status: 'published', publish_at: i * 100 }));
+    }
+    // newest first: p5, p4, p3, p2, p1
+    expect((await listArticles(env.DB, { limit: 2, offset: 0 })).map((a) => a.id)).toEqual(['p5', 'p4']);
+    expect((await listArticles(env.DB, { limit: 2, offset: 2 })).map((a) => a.id)).toEqual(['p3', 'p2']);
+    expect((await listArticles(env.DB, { limit: 2, offset: 4 })).map((a) => a.id)).toEqual(['p1']);
+
+    expect(await countArticles(env.DB, {})).toBe(5);
+    await insertArticle(env.DB, art({ id: 'h1', slug: 'h1', title: 'Hidden', status: 'hidden', publish_at: 600 }));
+    expect(await countArticles(env.DB, {})).toBe(6);
+    expect(await countArticles(env.DB, { status: 'hidden' })).toBe(1);
+    expect(await countArticles(env.DB, { q: 'T1' })).toBe(1);
   });
 
   it('updates and deletes', async () => {

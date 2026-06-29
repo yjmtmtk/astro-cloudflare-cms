@@ -2,11 +2,23 @@ import type { Role, UserRow } from './types';
 
 export type PublicUser = Omit<UserRow, 'password_hash' | 'password_salt'>;
 
-export async function listUsers(db: D1Database): Promise<PublicUser[]> {
-  const { results } = await db
-    .prepare('SELECT id, email, role, name, created_at FROM users ORDER BY created_at ASC')
-    .all<PublicUser>();
+export async function listUsers(
+  db: D1Database,
+  opts: { limit?: number; offset?: number } = {}
+): Promise<PublicUser[]> {
+  let sql = 'SELECT id, email, role, name, created_at FROM users ORDER BY created_at ASC';
+  const binds: unknown[] = [];
+  if (opts.limit != null && Number.isFinite(opts.limit)) {
+    sql += ' LIMIT ?'; binds.push(opts.limit);
+    if (opts.offset != null && Number.isFinite(opts.offset)) { sql += ' OFFSET ?'; binds.push(opts.offset); }
+  }
+  const { results } = await db.prepare(sql).bind(...binds).all<PublicUser>();
   return results;
+}
+
+export async function countUsers(db: D1Database): Promise<number> {
+  const row = await db.prepare('SELECT COUNT(*) AS n FROM users').first<{ n: number }>();
+  return row?.n ?? 0;
 }
 
 export async function countArticlesByAuthor(db: D1Database, userId: string): Promise<number> {

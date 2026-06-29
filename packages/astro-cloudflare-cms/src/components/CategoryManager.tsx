@@ -10,7 +10,10 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import Pager from './Pager';
 import { Plus, Pencil, Trash2, Save, X } from 'lucide-react';
+
+const PAGE_SIZE = 20;
 
 type FormState = { name: string; slug: string; sort_order: string };
 
@@ -20,6 +23,8 @@ export default function CategoryManager() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   // Dialog state
   const [open, setOpen] = useState(false);
@@ -31,15 +36,18 @@ export default function CategoryManager() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${config.adminBasePath}/api/categories`, { credentials: 'same-origin' });
+      const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+      const res = await fetch(`${config.adminBasePath}/api/categories?` + params, { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setCategories(await res.json());
+      const data = await res.json() as { items: CategoryRow[]; total: number };
+      setCategories(data.items);
+      setTotal(data.total);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
@@ -119,13 +127,13 @@ export default function CategoryManager() {
       {error && <p className="text-sm text-destructive">エラー: {error}</p>}
 
       {!loading && !error && (
-        <Table>
+        <Table className="w-full table-fixed">
           <TableHeader>
-            <TableRow>
+            <TableRow className="text-xs text-muted-foreground">
               <TableHead>名前</TableHead>
               <TableHead>スラッグ</TableHead>
-              <TableHead className="w-24">順序</TableHead>
-              <TableHead className="w-32"></TableHead>
+              <TableHead className="w-16">順序</TableHead>
+              <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,23 +146,45 @@ export default function CategoryManager() {
             )}
             {categories.map((cat) => (
               <TableRow key={cat.id}>
-                <TableCell className="font-medium">{cat.name}</TableCell>
-                <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
-                <TableCell>{cat.sort_order}</TableCell>
-                <TableCell className="flex gap-2 justify-end">
-                  <Button variant="outline" size="sm" onClick={() => openEdit(cat)} title="編集">
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">編集</span>
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(cat)} title="削除">
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">削除</span>
-                  </Button>
+                <TableCell className="font-medium">
+                  <div className="truncate" title={cat.name}>{cat.name}</div>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="truncate" title={cat.slug}>{cat.slug}</div>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">{cat.sort_order}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => openEdit(cat)}
+                      title="編集"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">編集</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDelete(cat)}
+                      title="削除"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">削除</span>
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+      )}
+
+      {!loading && !error && (
+        <Pager page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>

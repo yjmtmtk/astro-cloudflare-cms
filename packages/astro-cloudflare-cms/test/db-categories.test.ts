@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
 import {
-  listCategories, getCategory, insertCategory, updateCategory, deleteCategory,
+  listCategories, countCategories, getCategory, insertCategory, updateCategory, deleteCategory,
 } from '@/lib/db-categories';
 import type { CategoryRow } from '@/lib/types';
 
@@ -23,5 +23,14 @@ describe('db-categories', () => {
 
     await deleteCategory(env.DB, 'c2');
     expect(await getCategory(env.DB, 'c2')).toBeNull();
+  });
+
+  it('paginates with limit/offset (sort_order asc) and counts', async () => {
+    for (let i = 1; i <= 5; i++) {
+      await insertCategory(env.DB, cat({ id: `c${i}`, slug: `s${i}`, name: `N${i}`, sort_order: i }));
+    }
+    expect((await listCategories(env.DB, { limit: 2, offset: 0 })).map((c) => c.id)).toEqual(['c1', 'c2']);
+    expect((await listCategories(env.DB, { limit: 2, offset: 2 })).map((c) => c.id)).toEqual(['c3', 'c4']);
+    expect(await countCategories(env.DB)).toBe(5);
   });
 });

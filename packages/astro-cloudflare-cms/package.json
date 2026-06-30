@@ -23,7 +23,6 @@
   },
   "files": ["src", "migrations", "styles.css", "bin"],
   "scripts": {
-    "postinstall": "patch-package",
     "test": "vitest run",
     "test:watch": "vitest",
     "build:css": "tailwindcss -c ./tailwind.config.mjs -i ./src/styles/input.css -o ./styles.css --minify"

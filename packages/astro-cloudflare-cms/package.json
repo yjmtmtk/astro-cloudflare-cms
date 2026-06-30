@@ -2,12 +2,20 @@
   "name": "astro-cloudflare-cms",
   "version": "0.1.0",
   "description": "Drop-in D1+R2 CMS for Astro + Cloudflare + React sites — an Astro integration that injects admin UI, public /news, auth, and media.",
-  "keywords": ["astro", "astro-integration", "cloudflare", "d1", "r2", "cms", "react"],
+  "keywords": [
+    "astro",
+    "astro-integration",
+    "cloudflare",
+    "d1",
+    "r2",
+    "cms",
+    "react"
+  ],
   "license": "MIT",
   "author": "yjmtmtk",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yjmtmtk/astro-cloudflare-cms"
+    "url": "git+https://github.com/yjmtmtk/astro-cloudflare-cms.git"
   },
   "homepage": "https://github.com/yjmtmtk/astro-cloudflare-cms",
   "type": "module",
@@ -19,9 +27,14 @@
     "./styles.css": "./styles.css"
   },
   "bin": {
-    "astro-cloudflare-cms": "./bin/cli.mjs"
+    "astro-cloudflare-cms": "bin/cli.mjs"
   },
-  "files": ["src", "migrations", "styles.css", "bin"],
+  "files": [
+    "src",
+    "migrations",
+    "styles.css",
+    "bin"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",

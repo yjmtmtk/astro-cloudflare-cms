@@ -2,6 +2,29 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 // ---------------------------------------------------------------------------
+// defaultWranglerConfig
+// ---------------------------------------------------------------------------
+
+/**
+ * Return a minimal wrangler.jsonc string for a fresh project.
+ * Deliberately omits `main` — @astrojs/cloudflare v14 generates the
+ * runnable entry itself; including `main` would conflict.
+ * @param {string} name  Sanitized project name (lowercase, hyphens only)
+ * @returns {string}
+ */
+export function defaultWranglerConfig(name) {
+  return JSON.stringify(
+    {
+      name,
+      compatibility_date: '2025-09-01',
+      compatibility_flags: ['nodejs_compat'],
+    },
+    null,
+    2
+  ) + '\n';
+}
+
+// ---------------------------------------------------------------------------
 // findWranglerConfig
 // ---------------------------------------------------------------------------
 

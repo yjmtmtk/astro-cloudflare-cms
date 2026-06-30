@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { hashPassword, genSessionSecret } from './crypto.mjs';
-import { findWranglerConfig, mergeWranglerConfig } from './wrangler-config.mjs';
+import { findWranglerConfig, mergeWranglerConfig, defaultWranglerConfig } from './wrangler-config.mjs';
+import { detectHostWiring, formatWiringGuidance } from './host-wiring.mjs';
 import { run, log, warn, die, prompt } from './util.mjs';
 import { scaffoldNews } from './scaffold.mjs';
 
@@ -206,13 +207,13 @@ export async function init(flags) {
 
   // ── Step 4: Wrangler config ────────────────────────────────────────────────
   log('[4/9] Updating wrangler config…');
-  const cfgInfo = findWranglerConfig(cwd);
+  let cfgInfo = findWranglerConfig(cwd);
   if (!cfgInfo) {
-    die(
-      '[4/9] No wrangler config found in the current directory.\n' +
-      'Create wrangler.jsonc / wrangler.json / wrangler.toml first, then re-run:\n' +
-      '  npx astro-cloudflare-cms init'
-    );
+    const newCfgPath = join(cwd, 'wrangler.jsonc');
+    const defaultContent = defaultWranglerConfig(base);
+    writeFileSync(newCfgPath, defaultContent, 'utf8');
+    log(`  No wrangler config found — created ${newCfgPath} with minimal defaults.`);
+    cfgInfo = { path: newCfgPath, format: 'jsonc' };
   }
 
   const rawText = readFileSync(cfgInfo.path, 'utf8');
@@ -237,6 +238,28 @@ export async function init(flags) {
     log(`  ${cfgInfo.path} updated with D1/R2 bindings and compatibility settings.`);
   } else {
     log(`  ${cfgInfo.path} already up-to-date; no changes needed.`);
+  }
+
+  // ── Step 4b: Detect host wiring (non-fatal guidance) ─────────────────────
+  {
+    const CONFIG_CANDIDATES = ['astro.config.mjs', 'astro.config.ts', 'astro.config.js'];
+    /** @param {string} filePath @returns {string | null} */
+    function safeReadFile(filePath) {
+      try { return readFileSync(filePath, 'utf8'); } catch { return null; }
+    }
+    const report = detectHostWiring({
+      cwd,
+      configCandidates: CONFIG_CANDIDATES,
+      readFile: safeReadFile,
+    });
+    const guidance = formatWiringGuidance(report);
+    if (guidance) {
+      warn('');
+      warn(guidance);
+      warn('');
+    } else {
+      log('  Host wiring OK (peer deps + astro.config integration detected).');
+    }
   }
 
   // ── Step 5: Migrations ────────────────────────────────────────────────────
@@ -369,12 +392,15 @@ export async function init(flags) {
   log('');
   log('[9/9] Setup complete! Next steps:');
   log('');
-  log('  1. Build the project:');
-  log('       npm run build && npx wrangler dev');
+  log('  1. Start local dev (D1 + R2 served by vite-plugin, no separate wrangler needed):');
+  log('       npx astro dev');
+  log('     Then open http://localhost:4321/admin/login');
   log('');
-  log('  2. Log in at /admin/login');
+  log('  2. Production build + preview:');
+  log('       npm run build');
+  log('       npx wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state');
   log('');
-  log('  3. Before deploying, set the production session secret:');
+  log('  3. Before deploying to Cloudflare, set the production session secret:');
   log('       npx wrangler secret put SESSION_SECRET');
   log('');
 }

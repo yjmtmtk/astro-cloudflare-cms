@@ -15,6 +15,33 @@ are themed by the host's Tailwind v4 design tokens automatically.
 - A Cloudflare account with D1 and R2 enabled (or `--local` for local dev)
 - `compatibility_date >= 2025-09-01` and `nodejs_compat` flag in `wrangler.jsonc`
 
+## Host requirements / contracts
+
+For an automated (or AI-driven) install to produce a **themed, working** `/news`,
+the host project must satisfy these contracts. `init` detects the wiring and
+prints guidance, but it cannot infer these for you:
+
+- **Design tokens (theming).** Your `@theme` block (in the file that holds
+  `@import "tailwindcss"`) must define these exact token names — the package's
+  news components are styled with their utilities:
+  `--color-bg`, `--color-ink`, `--color-muted`, `--color-brand`,
+  `--color-surface`, `--color-line`, `--font-display`, `--font-body`.
+  If your project uses different names, add aliases for these (or edit the
+  scaffolded `/news` pages to use your own components). **Without these names the
+  Tailwind utilities are never generated and `/news` renders unstyled.**
+- **Layout contract.** The host layout the scaffolded pages wrap
+  (default `src/layouts/Layout.astro`; override via `cms({ news: { layout } })`)
+  must accept a `title: string` prop and render `<slot />` — the pages call
+  `<Layout title="…">…</Layout>`.
+- **`@source` location.** `init` appends
+  `@source "../../node_modules/astro-cloudflare-cms/src/news"` to
+  `src/styles/global.css`. If your global stylesheet (the one with
+  `@import "tailwindcss"`) lives elsewhere, move that one line there.
+- **What `init` does NOT do.** It does **not** install npm dependencies or edit
+  `astro.config.*` — do the **Install** and **astro.config** steps below first.
+  `init` prints the exact lines to add if they are missing, then handles the
+  backend (D1/R2, migration, secret, master) and the `/news` scaffolding.
+
 ## Quickstart
 
 **1. Install**
